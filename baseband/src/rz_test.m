@@ -1,0 +1,19 @@
+signal = [0 1 -1 0];
+n = length(signal);
+
+%% Sample Rate matches the length
+for f = [2 3 9]
+    assert(isequal(size(rz(signal, f)), [1 f*n]));
+end
+
+%% Default duty ratio is 0.5
+assert(isequal( ...
+    rz(signal, 2, 'DutyRatio', 0.5), ...
+    rz(signal, 2) ...
+));
+
+%% Double rate, half duty
+assert(isequal( ...
+    rz(signal, 2, 'DutyRatio', 0.5), ...
+    [0 0 1 0 -1 0 0 0] ...
+));
