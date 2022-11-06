@@ -10,7 +10,7 @@ function y = ami(x, first_mark)
 
 arguments
     x(1,:)
-    first_mark(1,1) {mustBeFinite, mustBeNonzero} = -1
+    first_mark(1,1) {mustBeMember(first_mark, [-1 +1])} = -1
 end
 
 y = x;
