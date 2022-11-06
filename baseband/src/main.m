@@ -5,7 +5,7 @@ fprintf('平均值是 %.3f ≈ 0.3，符合预期。\n', mean(raw));
 fprintf('开头符号如下。\n');
 raw(1:20)
 
-figure;
+figure('Name', '各序列、波形开头');
 subplot(3, 1, 1);
 stem(raw(1:20));
 title(join(["信源序列：" string(raw(1:20))]));
@@ -46,4 +46,16 @@ ylabel('HDB3');
 ylim([-1.2 1.2]);
 grid 'on';
 
-fprintf('请看各个序列、波形开头。\n');
+fprintf('请看各个序列、波形开头。\n\n');
+
+
+%% 4 功率谱
+fprintf('## 4 功率谱\n\n');
+
+figure('Name', 'AMI 功率谱');
+periodogram(ami_wave);
+title('AMI 功率谱');
+
+figure('Name', 'HDB3 功率谱');
+periodogram(hdb_wave);
+title('HDB3 功率谱');

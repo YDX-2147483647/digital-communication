@@ -17,3 +17,4 @@
 - [声明函数参数验证 - MATLAB arguments - MathWorks 中国](https://ww2.mathworks.cn/help/matlab/ref/arguments.html)
 - [AMI LINE CODING WITH MATLAB CODE FOR ENCODING AND DECODING - Tutorial Bit](https://tutorialbit.com/communication-engineering/ami-line-coding-with-matlab-code-for-encoding-and-decoding/)
 - [Modified AMI code - Wikipedia](https://en.wikipedia.org/wiki/Modified_AMI_code)
+- [使用 FFT 获得功率频谱密度估计 - MATLAB & Simulink - MathWorks 中国](https://www.mathworks.com/help/releases/R2020b/signal/ug/power-spectral-density-estimates-using-fft.html)
