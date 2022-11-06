@@ -5,9 +5,10 @@ fprintf('平均值是 %.3f ≈ 0.3，符合预期。\n', mean(raw));
 fprintf('开头符号如下。\n');
 raw(1:20)
 
+figure;
 subplot(3, 1, 1);
-title(join(["信源序列：" string(raw(1:20))]));
 stem(raw(1:20));
+title(join(["信源序列：" string(raw(1:20))]));
 xlabel('$t$', 'Interpreter', 'latex');
 ylabel('信源');
 ylim([-0.2 1.2]);
