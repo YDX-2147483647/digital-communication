@@ -1,6 +1,7 @@
 # 数字基带传输系统
 
 ```matlab
+>> cd src
 >> main  % 运行
 >> runtests  % 测试
 ```

@@ -14,6 +14,8 @@ function y = hdb(x, order, options)
 %   - FirstMark：首个“1”的编码，取 ±1。
 %   - FirstViolation：首个V的选取方法，±1 人为指定，0 不限制。
 %
+% 无论是哪种选项组合，再译码后都相同。
+%
 % 输出仍是数字信号，不涉及具体波形。
 
 arguments
