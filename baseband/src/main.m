@@ -9,7 +9,7 @@ figure('Name', '各序列、波形开头');
 subplot(3, 1, 1);
 stem(raw(1:20));
 title(join(["信源序列：" string(raw(1:20))]));
-xlabel('$t$', 'Interpreter', 'latex');
+xlabel('$n$ / symbol', 'Interpreter', 'latex');
 ylabel('信源');
 ylim([-0.2 1.2]);
 % 这里画序列，而后面画波形，二者默认长度不完全相同。
@@ -26,7 +26,7 @@ ami_seq(1:20)
 subplot(3, 1, 2);
 ami_wave = rz(ami_seq, 8);
 plot(ami_wave(1: 8*20));
-xlabel('$t$', 'Interpreter', 'latex');
+xlabel('$t$ / sample', 'Interpreter', 'latex');
 ylabel('AMI');
 ylim([-1.2 1.2]);
 grid 'on';
@@ -41,11 +41,12 @@ hdb_seq(1:20)
 subplot(3, 1, 3);
 hdb_wave = rz(hdb_seq, 8);
 plot(hdb_wave(1: 8*20));
-xlabel('$t$', 'Interpreter', 'latex');
+xlabel('$t$ / sample', 'Interpreter', 'latex');
 ylabel('HDB3');
 ylim([-1.2 1.2]);
 grid 'on';
 
+exportgraphics(gcf(), '../fig/time.jpg');
 fprintf('请看各个序列、波形开头。\n\n');
 
 
@@ -55,7 +56,9 @@ fprintf('## 4 功率谱\n\n');
 figure('Name', 'AMI 功率谱');
 periodogram(ami_wave);
 title('AMI 功率谱');
+exportgraphics(gcf(), '../fig/AMI-freq.jpg');
 
 figure('Name', 'HDB3 功率谱');
 periodogram(hdb_wave);
 title('HDB3 功率谱');
+exportgraphics(gcf(), '../fig/HDB-freq.jpg');
