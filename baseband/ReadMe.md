@@ -6,6 +6,10 @@
 >> runtests  % 测试
 ```
 
+- 程序入口
+  - `main.m`：实验内容。
+  - `misc_periodogram.m`：几种展示功率谱的方法。
+
 ## 参考
 
 - [随机数生成 - MATLAB & Simulink - MathWorks 中国](https://ww2.mathworks.cn/help/matlab/random-number-generation.html)

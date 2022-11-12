@@ -62,3 +62,9 @@ figure('Name', 'HDB3 功率谱');
 periodogram(hdb_wave);
 title('HDB3 功率谱');
 exportgraphics(gcf(), '../fig/HDB-freq.jpg');
+
+
+%% 5 改变信源
+fprintf('## 5 改变信源\n\n');
+main_5
+main_5_smooth
