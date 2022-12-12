@@ -1,7 +1,7 @@
 %% 1 生成的信号。
 fprintf("## 1 生成的信号\n\n")
 raw = generate_signal(100, 0.5);
-raw(1:10)
+fprintf("信源序列：%s, …\n\n", join(string(raw(1:10)), ", "));
 
 
 %% 2 调制
@@ -22,6 +22,7 @@ xlim([1 11]);
 subplot(2, 1, 2);
 plot(modulated(1: 100 * 10));
 xlabel("样本序号");
+ylabel("$s_\mathrm{BPSK}(t)$", "Interpreter", "latex");
 title("调制波形");
 
 fprintf("请看序列、波形开头。\n");
@@ -32,5 +33,64 @@ figure("Name", "功率谱");
 periodogram(modulated);
 title("调制波形的功率谱");
 
-fprintf("请看功率谱。\n");
+fprintf("请看功率谱。\n\n");
 exportgraphics(gcf(), "../fig/BPSK-freq.jpg");
+
+
+%% 正常解调
+fprintf("## 3 正常解调\n\n")
+x_normal = interfere(modulated, 100 / 10);
+
+y_normal = simple_filter(x_normal, ones(1, 10));
+r_normal = judge_bipolar(y_normal, 100);
+
+y_long = simple_filter(x_normal, ones(1, 12));
+r_long = judge_bipolar(y_long, 100);
+
+% 绘图 demodulate-normal
+figure("Name", "正常解调", "WindowState", "maximized");
+
+tiledlayout(3, 2);
+
+nexttile([1 2]);
+plot(x_normal(1: 100 * 10));
+xlabel("样本序号");
+ylabel("$x(t)$", "Interpreter", "latex");
+title("相干后波形");
+
+for i = 3:4
+    nexttile
+    if i == 3
+        y = y_normal;
+        tail = "正常响应";
+    else
+        y = y_long;
+        tail = "长响应";
+    end
+
+    plot(y(1: 100 * 10));
+    title(sprintf("滤波后波形（%s）", tail));
+    xlabel("样本序号");
+    ylabel("$y(t)$", "Interpreter", "latex");
+    ylim(1.2 * minmax(y));
+end
+
+for i = 5:6
+    nexttile
+    if i == 5
+        r = r_normal;
+        tail = "正常响应";
+    else
+        r = r_long;
+        tail = "长响应";
+    end
+
+    stem(r_normal(1: 10));
+    title(sprintf("判决结果（%s）", tail));
+    xlabel("码元序号");
+    ylim([-0.2 1.2]);
+    xlim([0.5 10.5]);
+end
+
+fprintf("请看正常解调情况。\n");
+exportgraphics(gcf(), "../fig/demodulate-normal.jpg");
