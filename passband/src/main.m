@@ -1,11 +1,11 @@
-%% 1 生成的信号。
-fprintf("## 1 生成的信号\n\n")
+%% 1 生成的信号
+fprintf("## 1 生成的信号\n\n");
 raw = generate_signal(100, 0.5);
 fprintf("信源序列：%s, …\n\n", join(string(raw(1:10)), ", "));
 
 
 %% 2 调制
-fprintf("## 2 调制\n\n")
+fprintf("## 2 调制\n\n");
 modulated = bpsk(raw, 10, 100 / 10);
 
 % 绘图 BPSK
@@ -38,7 +38,7 @@ exportgraphics(gcf(), "../fig/BPSK-freq.jpg");
 
 
 %% 3 正常解调
-fprintf("## 3 正常解调\n\n")
+fprintf("## 3 正常解调\n\n");
 x_normal = interfere(modulated, 100 / 10);
 
 y_normal = simple_filter(x_normal, ones(1, 10));
