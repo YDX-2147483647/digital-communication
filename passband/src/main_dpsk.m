@@ -47,7 +47,7 @@ figure("Name", "解调", "WindowState", "maximized");
 
 %% 解调：a
 % 没有噪声，带通滤波器我就省略了。
-a = [modulated zeros(1, 100)];
+a = modulated;
 
 subplot(4, 1, 1);
 plot(a(1: 100 * 10));
@@ -55,7 +55,7 @@ xlabel("样本序号");
 title("a");
 
 %% 解调：b
-b = [zeros(1, 100) modulated];
+b = [zeros(1, 100) modulated(1: end-100)];
 
 subplot(4, 1, 2);
 plot(a(1: 100 * 10));
@@ -98,3 +98,9 @@ xlim([0 10]);
 
 fprintf("请看抽样判决结果。\n\n")
 exportgraphics(gcf(), "../fig/DPSK-judge.jpg");
+
+if isequal(r, raw)
+    fprintf("译码全部正确。\n")
+else
+    fprintf("译码错了 %d 位。\n", sum(abs(r - raw)));
+end
