@@ -116,7 +116,7 @@ plot(y_inverse(1: 100 * 10));
 title("滤波后波形");
 xlabel("样本序号");
 ylabel("$y(t)$", "Interpreter", "latex");
-ylim(1.2 * minmax(y));
+ylim(1.2 * minmax(y_inverse));
 
 subplot(3,1,3);
 stem(r_inverse(1: 10));
@@ -125,5 +125,38 @@ xlabel("码元序号");
 ylim([-0.2 1.2]);
 xlim([0.5 10.5]);
 
-fprintf("请看反相工作时情况。\n");
+fprintf("请看反相工作时情况。\n\n");
 exportgraphics(gcf(), "../fig/demodulate-inverse.jpg");
+
+
+%% 5 不同步
+fprintf("## 5 不同步\n\n");
+x_async = interfere(modulated, 100 / 10.05);
+y_async = simple_filter(x_async, ones(1, 10));
+r_async = judge_bipolar(y_async, 100);
+
+% 绘图 demodulate-async
+figure("Name", "不同步", "WindowState", "maximized");
+
+subplot(3,1,1);
+plot(x_async(1: 100 * 10));
+xlabel("样本序号");
+ylabel("$x(t)$", "Interpreter", "latex");
+title("相干后波形");
+
+subplot(3,1,2);
+plot(y_async(1: 100 * 10));
+title("滤波后波形");
+xlabel("样本序号");
+ylabel("$y(t)$", "Interpreter", "latex");
+ylim(1.2 * minmax(y_async));
+
+subplot(3,1,3);
+stem(r_async(1: 10));
+title("判决结果");
+xlabel("码元序号");
+ylim([-0.2 1.2]);
+xlim([0.5 10.5]);
+
+fprintf("请看不同步时情况。\n");
+exportgraphics(gcf(), "../fig/demodulate-async.jpg");
