@@ -37,7 +37,7 @@ fprintf("请看功率谱。\n\n");
 exportgraphics(gcf(), "../fig/BPSK-freq.jpg");
 
 
-%% 正常解调
+%% 3 正常解调
 fprintf("## 3 正常解调\n\n")
 x_normal = interfere(modulated, 100 / 10);
 
@@ -92,5 +92,38 @@ for i = 5:6
     xlim([0.5 10.5]);
 end
 
-fprintf("请看正常解调情况。\n");
+fprintf("请看正常解调情况。\n\n");
 exportgraphics(gcf(), "../fig/demodulate-normal.jpg");
+
+
+%% 4 反相工作
+fprintf("## 4 反相工作\n\n");
+x_inverse = interfere(modulated, 100 / 10, "InitialPhase", pi);
+y_inverse = simple_filter(x_inverse, ones(1, 10));
+r_inverse = judge_bipolar(y_inverse, 100);
+
+% 绘图 demodulate-inverse
+figure("Name", "反相工作", "WindowState", "maximized");
+
+subplot(3,1,1);
+plot(x_inverse(1: 100 * 10));
+xlabel("样本序号");
+ylabel("$x(t)$", "Interpreter", "latex");
+title("相干后波形");
+
+subplot(3,1,2);
+plot(y_inverse(1: 100 * 10));
+title("滤波后波形");
+xlabel("样本序号");
+ylabel("$y(t)$", "Interpreter", "latex");
+ylim(1.2 * minmax(y));
+
+subplot(3,1,3);
+stem(r_inverse(1: 10));
+title("判决结果");
+xlabel("码元序号");
+ylim([-0.2 1.2]);
+xlim([0.5 10.5]);
+
+fprintf("请看反相工作时情况。\n");
+exportgraphics(gcf(), "../fig/demodulate-inverse.jpg");
