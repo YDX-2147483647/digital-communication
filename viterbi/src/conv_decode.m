@@ -28,6 +28,7 @@ drift(2:end, 2) = inf;
 
 % 若 #time 时处于 #state，则 #time-1 时最可能处于 track(#state, #time)
 % 将按 #time 升序填充
+% #state 从 0 开始计数
 track = zeros(n_state, n_time);
 
 
@@ -37,10 +38,10 @@ for t = 1: n_time
     drift(:, 1) = drift(:, 2);
 
     %% Fill the new, i.e. drift(:, 2) and track(:, t)
-    for next_state = 1: n_state
+    for next_state = 0: n_state-1
         %% 1. Calculate possibilities
         % possible_last_states(#possibility)
-        possible_last_states = find(transition(:, next_state));
+        possible_last_states = find(transition(:, next_state+1)) - 1;
         
         % possible_histories(#possibility, #input)
         % (previous and next state) → concatenated state
@@ -55,26 +56,27 @@ for t = 1: n_time
         
         %% 2. Locate the minimal drift
         possible_drifts = ...
-            drift(possible_last_states, 1) + ...
+            drift(possible_last_states+1, 1) + ...
             hamming_distance(possible_outputs, y(:, t).');
         
         [new_drift, last_state_i] = min(possible_drifts);
 
 
         %% 3. Save it.
-        drift(next_state, 2) = new_drift;
-        track(next_state, t) = possible_last_states(last_state_i);
+        drift(next_state+1, 2) = new_drift;
+        track(next_state+1, t) = possible_last_states(last_state_i);
     end
 end
 
 
 %% 大决赛，读取结果
 [~, last_state] = min(drift(:, 2));
+last_state = last_state - 1;
 
 x = zeros(1, n_time);
 for t = n_time: -1: 1
     x(t) = bitget(last_state, log_n_state);
-    last_state = track(last_state, t);
+    last_state = track(last_state+1, t);
 end
 
 end
