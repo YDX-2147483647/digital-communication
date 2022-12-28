@@ -13,7 +13,7 @@ for p = 1 - prob
     wave_set = reshape(wave_set, [], n);
 
     [pxx_set, w] = periodogram(wave_set);
-    pxx = sum(pxx_set, 2);
+    pxx = mean(pxx_set, 2);
 
     plot(w / pi, 10 * log10(pxx));
 end
