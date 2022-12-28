@@ -646,3 +646,7 @@ HDB-3 的功率谱与 AMI 类似，只是能量在零点之间并不形成一个
 2. 曹丽娜,樊昌信. 通信原理 第7版[M]. 北京市: 国防工业出版社, 2022.
 
 此外，我编程时还参考了许多网络文献，列在了附件源代码的`ReadMe.md`中。
+
+---
+
+本项目的代码、文档等存档于[仓库 digital-communication](https://github.com/YDX-2147483647/digital-communication)。不少内容和同学讨论过，万一引发著作权纠纷，请参考我每部分的[提交记录及日期](https://github.com/YDX-2147483647/digital-communication/commits/main)。
