@@ -1,4 +1,6 @@
-%% 1 生成的信号。
+rng(44); % 保证碰到连续零，以展示 HDB-3
+
+%% 1 生成的信号
 fprintf('## 1 生成的信号\n\n')
 raw = generate_signal(1000, 0.3);
 fprintf('平均值是 %.3f ≈ 0.3，符合预期。\n', mean(raw));

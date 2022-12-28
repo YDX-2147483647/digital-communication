@@ -8,7 +8,16 @@
 
 - 程序入口
   - `main.m`：实验内容。
+    
+    第5部分功率谱单独成文（`main_5.m`），在`main.m`中调用；`main_5_smooth.m`是平滑后的，也在`main.m`中调用。
+
   - `misc_periodogram.m`：几种展示功率谱的方法。
+
+- 模块
+  - `generate_signal.m`、`generate_signal_test.m`：生成数字基带信号。
+  - `ami.m`、`ami_test.m`：AMI 编码。（只编码，不转换为波形，下同）
+  - `hdb.m`、`hdb_test.m`：HDB 编码。
+  - `rz.m`、`rz_test.m`：生成归零波形。
 
 ## 参考
 
