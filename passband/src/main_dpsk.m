@@ -58,7 +58,7 @@ title("a");
 b = [zeros(1, 100) modulated(1: end-100)];
 
 subplot(4, 1, 2);
-plot(a(1: 100 * 10));
+plot(b(1: 100 * 10));
 xlabel("样本序号");
 title("b");
 
