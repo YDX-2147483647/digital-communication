@@ -81,11 +81,13 @@ flowchart LR
 
 本项目规定记号如下。
 
-| 下标 |        意义         | 解释 |
-| :--: | :-----------------: | :--: |
-| $c$  |       carrier       | 载波 |
-| $B$  | baud (Émile Baudot) |  码  |
-| $s$  |      sampling       | 采样 |
+| 下标 |    意义     | 解释 |
+| :--: | :---------: | :--: |
+| $c$  |   carrier   | 载波 |
+| $B$  | baud[^baud] |  码  |
+| $s$  |  sampling   | 采样 |
+
+[^baud]:Émile Baudot，详见参考文献 2.。
 
 例如，载波与 $\cos(\omega_c t)$ 成正比，码率是 $R_B$（baud/s）或 $f_B$（Hz），采样周期是 $T_s$。
 
@@ -132,7 +134,7 @@ end
 
 另外，可以用`InitialPhase`规定载波初相，实现翻转整个信号。
 
-1. 生成单个码元的载波。
+1. **生成单个码元的载波。**
 
    下面的`t`是旋转周数，等于 $f_c$ × 实际时间 $t$，无量纲。每个码元持续 $T_B$，对应无量纲旋转周数是 $f_c T_B = f_c/f_B$，即`periods_per_symbol`。采样周期 $T_s$，对应无量纲旋转周数是 $f_c T_s = 1 / \qty(f_s / f_c)$，即`1/samples_per_period`。
 
@@ -146,7 +148,7 @@ end
 
    > `left: step: right`表示左闭右也闭区间，直接使用会导致下一周期的第一点和这一周期的最后一点重复。因此要丢弃末点，改成左闭右开。
 
-2. 生成波形。
+2. **生成波形。**
 
    先转换为双极性信号`2*s - 1`，再与载波相乘，得一矩阵，其维度以此为快时间（码元内时间）、慢时间（码元序号）。然后压平。
 
@@ -159,23 +161,323 @@ end
 
 ### 相干`interfere.m`
 
+输入波形`x`和 $f_s/f_c$（`samples_per_period`），输出与载波相干的结果`y`。
+
+同样可用`InitialPhase`规定载波初相。
+
+1. **制备载波。**
+
+   ```matlab
+   % t 是旋转周数，等于 f_carrier × time。
+   t = (0: length(x) - 1) / samples_per_period;
+   carrier = cos(2 * pi * t + options.InitialPhase);
+   ```
+
+   方法类似`bpsk.m`，但这里不涉及码元怎么划分，按间隔为 $f_c T_s = 1 / \qty(f_s/f_c)$（`1 / samples_per_period`）、分布范围同`x`生成无量纲`t`序列即可。
+
+2. **对应相乘。**
+
+   ```matlab
+   y = carrier .* x;
+   ```
+
 ### 简易滤波器`simple_filter.m`
+
+输入波形`x`和滤波器的单位冲激响应`h`，输出滤波结果`y`。
+
+直接卷积即可。
+
+```matlab
+y = conv(x, h);
+y = y(1: length(x));
+```
+
+卷积后最后一点的时间坐标是`x`、`h`的坐标和，波形变长了。为方便处理，我们直接截断尾巴。
+
+> `conv`函数还提供了其它卷积范围，但都不合适。我们要求`x`、`y`长度相同，并且相同位置的点对应相同时间坐标。
+>
+> 以下摘自参考文献 3.。
+>
+> - full（默认）：全卷积。
+> - same：与`x`大小相同的卷积的中心部分。
+> - valid：仅计算没有补零边缘的卷积部分。使用此选项时，`length(y)`是`max(length(x)-length(h)+1, 0)`，但`length(h)`为零时除外。如果`length(h) = 0`，则`length(y) = length(x)`。
+>
 
 ### 抽样判决`judge_bipolar.m`
 
+输入双极性波形`x`和 $f_s/f_B$（`samples_per_symbol`），抽样判决为数字序列`s`。
+
+1. **分解时间。**
+
+   ```matlab
+   x = reshape(x, samples_per_symbol, []);
+   ```
+
+   将`x`转换为矩阵，维度依次是快时间（码元内时间）、慢时间（码元序号）。
+
+2. **抽样。**
+
+   本项目非常理想，几乎处处是“最佳抽样时刻”。但我们还是按实际情况，取码元中间时刻判决，也就是取第一维的`floor(samples_per_symbol / 2)`处。
+
+3. **判决。**
+
+   ```matlab
+   s = x(floor(samples_per_symbol / 2), :) > 0;
+   % logical → numbers
+   s = 1 * s;
+   ```
+
+   由于是双极性波形，正数判 1，其余判 0。
+
+   `x(…, :) > 0`是 logical 数组，不方便后续处理，所以我们转换一下。
+
 ### 差分编码`diff_code.m`
+
+输入数字序列`u`，转换为差分数字序列`v`。
+
+首个码元的相位仍有歧义，浪费之，固定为 0。故期望输出如下。（其中`+`表示异或）
+
+```matlab
+[0, u(1), u(1) + u(2), u(1) + u(2) + u(3), …]
+```
+
+——这是一种累计和，我们直接`cumsum`（cumulative sum），再`mod`（modulo）即可。
+
+```matlab
+v = mod([0 cumsum(u)], 2);
+```
+
+这样虽浪费计算量，但简洁可靠。
 
 ### 测试`○○_test.m`
 
+> 这些单元测试是和以上模块同时写的，只是单独列出来。
+
+单元测试我采用基于脚本的测试框架。例如`bpsk_test.m`测试`bpsk`，如下。
+
+```matlab
+x = [0 1 1 0];
+n = length(x);
+
+%% Sample Rate matches the length
+for c = [2 3 9]
+    for s = [1 2 5]
+        assert(isequal(size(bpsk(x, c, s)), [1 n*c*s]));
+    end
+end
+
+
+%% Periodicity
+y = bpsk(x, 3, 10);
+assert(isequal(y(1:30), - y(31:60)));
+assert(isequal(y(1:30), - y(61:90)));
+assert(isequal(y(1:30), + y(91:120)));
+
+
+% ……
+```
+
 ### 主函数`main.m`等
 
+> 其实并不能叫主“函数”——`main.m`会打印文字、输出图片，高度特化于实验要求，我没有写成函数。
+
+#### 1 生成的信号
+
+调用刚才的函数即可。
+
+```matlab
+fprintf("## 1 生成的信号\n\n");
+raw = generate_signal(100, 0.5);
+fprintf("信源序列：%s, …\n\n", join(string(raw(1:10)), ", "));
+```
+
+#### 2 调制
+
+还是调用。要求 $f_c = 10 f_B$，$f_s = 100 f_B$，故`periods_per_symbol`为 $f_c/f_B = 10$，`samples_per_period`为 $f_s/f_c = 100/10$。
+
+```matlab
+fprintf("## 2 调制\n\n");
+modulated = bpsk(raw, 10, 100 / 10);
+```
+
+然后画图。画图代码比较繁琐，意义不大，后面不再完整罗列，请直接参考附件源代码。
+
+```matlab
+% 绘图 BPSK
+figure("Name", "序列、波形开头");
+
+subplot(2, 1, 1);
+stem(raw(1: 10));
+title("信源序列");
+xlabel("码元序号");
+ylim([-0.2 1.2]);
+% 这里画序列，而后面画波形，二者默认长度不完全相同。
+xlim([1 11]);
+```
+
+这里只画前 10 点，横坐标范围是1, …, 10，却设置`xlim([1 11])`，是因为下面波形的横坐标范围是 $[1,2),\, [2, 3), \ldots, [10, 11)$，总共 $[0, 11)$，多留个空白方便对齐。
+
+```matlab
+subplot(2, 1, 2);
+plot(modulated(1: 100 * 10));
+xlabel("样本序号");
+ylabel("$s_\mathrm{BPSK}(t)$", "Interpreter", "latex");
+title("调制波形");
+
+fprintf("请看序列、波形开头。\n");
+exportgraphics(gcf(), "../fig/BPSK.jpg");
+```
+
+然后是功率谱，用`periodogram`即可。
+
+```matlab
+% 绘图 BPSK-freq
+figure("Name", "功率谱");
+periodogram(modulated);
+title("调制波形的功率谱");
+
+fprintf("请看功率谱。\n\n");
+exportgraphics(gcf(), "../fig/BPSK-freq.jpg");
+```
+
+#### 3 正常解调
+
+同前调用。滤波器的单位冲激响应直接用`ones(1, …)`表示。
+
+```matlab
+fprintf("## 3 正常解调\n\n");
+x_normal = interfere(modulated, 100 / 10);
+
+y_normal = simple_filter(x_normal, ones(1, 10));
+r_normal = judge_bipolar(y_normal, 100);
+
+y_long = simple_filter(x_normal, ones(1, 12));
+r_long = judge_bipolar(y_long, 100);
+
+% ……（画图）……
+```
+
+#### 4 反相工作
+
+和 3 类似，调用时带上参数`InitialPhase`即可。
+
+```matlab
+fprintf("## 4 反相工作\n\n");
+x_inverse = interfere(modulated, 100 / 10, "InitialPhase", pi);
+y_inverse = simple_filter(x_inverse, ones(1, 10));
+r_inverse = judge_bipolar(y_inverse, 100);
+
+% ……（画图）……
+```
+
+#### 5 不同步
+
+这一情景中，发送端 $f_{c,\, \text{transmit}} = 10 f_B$，接收端却 $f_{c,\, \text{receive}} = 10.05 f_B$，影响相干`interfere`。
+
+仍有采样率 $f_s = 100 f_B$，故接收端认为`samples_per_period`为 $f_s / f_{c,\, \text{receive}} = 100 / 10.5$。
+
+其余同 3。
+
+```matlab
+fprintf("## 5 不同步\n\n");
+x_async = interfere(modulated, 100 / 10.05);
+y_async = simple_filter(x_async, ones(1, 10));
+r_async = judge_bipolar(y_async, 100);
+
+% ……（画图）……
+```
+
+#### 6 DPSK`main_dpsk.m`
+
+DPSK 部分用不到前面的结果，所以单独成文以方便调试。
+
+1. **制备数字序列。**
+
+   与 PSK 相比，还需变换码型，调用`diff_code`。
+
+   ```matlab
+   raw = generate_signal(100, 0.5);
+   fprintf("信源序列：%s, …\n\n", join(string(raw(1:10)), ", "));
+   
+   raw_diff = diff_code(raw);
+   fprintf("差分序列：%s, …\n\n", join(string(raw(1:10)), ", "));
+   ```
+
+2. **调制。**
+
+   ```matlab
+   fprintf("## 调制\n\n");
+   modulated = bpsk(raw_diff, 10, 100 / 10);
+   
+   % ……（画图）……
+   ```
+
+3. **解调。**
+
+   ![](../passband.assets/DPSK.jpg)
+
+   ```matlab
+   fprintf("## 解调\n\n");
+   % ……（画图；此段画图很碎，以下不再标注）……
+   
+   %% 解调：a
+   % 没有噪声，带通滤波器我就省略了。
+   a = modulated;
+   
+   %% 解调：b
+   b = [zeros(1, 100) modulated(1: end-100)];
+   ```
+
+   延迟一个码元，相当于因变量不变，自变量向后平移 $T_B$，合 $f_s T_B = 100$ 个采样点。平移后空处补零（其实补什么都可以），尾部抛弃。
+
+   ```matlab
+   %% 解调：c
+   c = a .* b;
+   
+   %% 解调：d
+   d = simple_filter(c, ones(1, 10));
+   ```
+
+4. **抽样判决。**
+
+   `diff_code`时因首个码元的相位仍有歧义，主动浪费了。这里抽样判决也要抛弃首个码元，从下一码元开始用，即`d(101: end)`。
+
+   又因为本项目 DPSK 采用 0 不变、1 变，而差分相干解调后直接`judge_bipolar`是同相 1、反相 0，同相对应不变、反相对应变，故最后还需取反（`r = 1 - judge_bipolar(…)`）。
+
+   ```matlab
+   fprintf("## 抽样判决\n\n");
+   r = 1 - judge_bipolar(d(101: end), 100);
+   
+   % ……（画图）……
+   
+   if isequal(r, raw)
+       fprintf("译码全部正确。\n")
+   else
+       fprintf("译码错了 %d 位。\n", sum(abs(r - raw)));
+   end
+   ```
+
 ## 4 仿真结果和分析
+
+### 1 生成的信号、2 调制
+
+### 3 正常解调
+
+### 4 反相工作
+
+### 5 不同步
+
+### 6 DPSK
 
 ## 5 结论
 
 ## 6 参考文献
 
 1. 曹丽娜,樊昌信. 通信原理 第7版[M]. 北京市: 国防工业出版社, 2022.
+1. Wikipedia contributors. "Baud,"  *Wikipedia, The Free Encyclopedia* [EB/OL]. \<https://en.wikipedia.org/w/index.php?title=Baud&oldid=1111891958\>
+1. MathWorks. 卷积和多项式乘法[Z/OL]. \<https://ww2.mathworks.cn/help/releases/R2020b/matlab/ref/conv.html\>
+
+此外，我编程时还参考了许多网络文献，列在了附件源代码的`ReadMe.md`中。
 
 ---
 
