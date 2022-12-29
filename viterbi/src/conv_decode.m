@@ -1,7 +1,7 @@
 function x = conv_decode(y, g)
 %conv_decode - 用 Viterbi 算法解码卷积码
 %
-% x = conv_decode(y) 将 y 按卷积码编码，g 为生成矩阵
+% x = conv_decode(y, g) 将 y 按卷积码解码，g 为生成矩阵
 
 arguments
     y(1, :)
